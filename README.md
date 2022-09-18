@@ -1,11 +1,16 @@
 # SoftwareI2C
-Software bit-banging I2C library for Arduino
+SoftwareI2C is an arduino library to handle I2C Communications via a software driver.
 
-This library is still a Work In Progress. Feel free to improve it as you see fit.
+## Description
+SoftwareI2C is a lightweight, adaptable driver layer for the I2C Bus, allowing the use of multiple devices with the same address (using multiple object constructs), 
+and to allow devices without I2C Hardware to use this protocol.
 
-The library is designed to defer heavy calculations to idle-time and be very light while communicating.
-This - and the fact that some don't have hardware I2C - This makes it perfect for ATTiny devices.
+## TO-DO 
+*Need to add the final arbitration control
+*Create a neater and lighter error messaging system (PROGMEM & Flagging)
+*
 
-Additionally it allows use of multiple devices that have clashing I2C Addresses
+Written by ADBeta 
 
-Written By ADBeta
+## Licence
+SoftwareI2C is under the GPL (GPL3.0), please see LICENCE for information
