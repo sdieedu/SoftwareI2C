@@ -6,9 +6,8 @@ SoftwareI2C is a lightweight, adaptable driver layer for the I2C Bus, allowing t
 and to allow devices without I2C Hardware to use this protocol.
 
 ## TO-DO 
-*Need to add the final arbitration control
-*Create a neater and lighter error messaging system (PROGMEM & Flagging)
-*
+* Need to add the final arbitration control
+* Create a neater and lighter error messaging system (PROGMEM & Flagging)
 
 Written by ADBeta 
 
