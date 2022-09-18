@@ -1,58 +1,93 @@
-/*
-	Software I2C Library designed for devices without hardware I2C like ATTiny
-	devices, or for multiple clashing I2C addresses.
-	
-	Still a work in progress.
-	ADBeta
-	Last Modified 12 Dec 2021
-*/
+/*******************************************************************************
+* Software I2C Library designed for devices without hardware I2C like the ATTiny
+* devices, or for multiple identical devices on one system where their addresses
+* would otherwise clash and fail
+*
+* ADBeta 18 Sep 2022
+* Version 0.1.6
+*******************************************************************************/
 
 #include "Arduino.h"
 
 #ifndef SoftwareI2C_h
 #define SoftwareI2C_h
 
+//TODO Make progmem list of possible error messages
+
 class SoftwareI2C {
 	public:
-	void setup(uint8_t, uint8_t, uint8_t);
+	//Constructor. SDA, SCL, Address.
+	SoftwareI2C(uint8_t sda, uint8_t scl, uint8_t addr);
+	
+	/*** Setup and configure **************************************************/
+	void setVerbosity(bool); //Configures if serial printing is enabled
 	void setSpeed(int); //Communication speed in kHz. Defaults to no delay.
 	void listDevices(); //Find and print any connected devices.
 	
-	/* High level functions for faster/easier development */ 
-	uint8_t writeCommand(uint8_t); //Write single byte to bus
+	/*** High Level Functions *************************************************/ 
+	//Write a single byte to the bus (returns exit status)
+	bool writeByte(uint8_t dat);
 	
-	//LSB First multi-byte functions
-	uint8_t writeData(uint8_t, uint32_t, uint8_t = 1); //Register addr, data, number of bytes. 4 max. (default 1)
-	uint32_t readData(uint8_t, uint8_t = 1); //Register addr, number of bytes. returns 4 bytes max (default 1)
+	//Write a byte to a register (returns exit status)
+	bool writeRegister(uint8_t reg, uint8_t dat);
+	//Read a byte from a register
+	uint8_t readRegister(uint8_t reg);
 	
-	/* Low level functions to somewhat emulate wire.h */
-	uint8_t I2CAddress;
+	//From start register, read to or write from an array, n number of bytes
+	//Return the exit status
+	bool writeArray(uint8_t reg, uint8_t *, uint8_t n);
+	bool readArray(uint8_t reg, uint8_t *, uint8_t n);
+	
+	/*** Transmission control *************************************************/
 	void startI2C();
 	void stopI2C();
 	
-	uint8_t rxByte(bool);
+	//Acknowledge modes. aliased to the actual value needed
+	enum ACK_t : uint8_t{
+		ACK = 0,
+		NACK = 1
+	};
+	
+	//Read a byte from bus, pass ACK type 
+	uint8_t rxByte(ACK_t);
 	bool txByte(uint8_t);
 	
-	private:
-	/* Low level functions */
-	uint8_t _SCL; //Want to make asm converter and have asm versions of the pins for speed
-	uint8_t _SDA;
+	private:	
+	/*** Hardware pins and ports ***/
+	uint8_t bm_SDA, bm_SCL; //ASM 'pin' aka bitmask
+	volatile uint8_t *ir_SDA, *ir_SCL; //ASM INPUT port
+	volatile uint8_t *dr_SDA, *dr_SCL; //ASM Direction Register
 	
-	void assertPin(uint8_t); //Asserts a LOW to the bus
-	void releasePin(uint8_t); //Lets bus go HIGH 
+	/*** Enum & Macros ********************************************************/
+	//Enum pin names, used for assertPin and releasePin
+	enum i2c_pin {
+		sda,
+		scl
+	};
 	
-	void wait(int = 0); //Wait x amount of microseconds (defined by setSpeed) or override
+	/*** Transmission control ***/
+	void assertPin(i2c_pin); //Asserts a LOW to the bus
+	void releasePin(i2c_pin); //Lets bus pullup to HIGH 
 	
 	bool rxBit();
 	void txBit(bool);
 	
-	/* Safety and error functions */
-	uint8_t transmitError(uint8_t, const char* = ""); //Returns the Error ID and (optional) error message
-	uint8_t clockStretch(); //Function to do clock stretching, allows for error handling
+	//Delay based on speed set. Can override (useconds). Default is unlimted
+	void wait(int overrideDelay = 0); 
 	
-	/* Internal use vars */
+	//Terminates a protcol action, and prints a message if verbosity is enabled
+	void protocolError(const char* = "");
+	
+	//Clock Stretching allows for processing time of the slave before 
+	//receiving the bytes
+	uint8_t clockStretch();
+	
+	/*** Configuration variables **********************************************/
+	bool verbose = false;
+	int delayMicros = 0; //Micros to delay during transmission. 
+	uint8_t I2CAddress; //The address of the slave deivce from constructor
+	
+	//Keeps track of if the bus is active
 	bool active = false;
-	int delayMicros = 0;
-	
 };
 #endif
