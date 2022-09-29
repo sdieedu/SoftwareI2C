@@ -6,11 +6,11 @@
 * This is a demo of the most useful funtions, but this ultimately has no
 * usefulness.
 *
-* ADBeta 18 Sep 2022
+* ADBeta 29 Sep 2022
 * Version 0.1.6
 *******************************************************************************/
 
-#include "SoftwareI2C.h"
+#include <SoftwareI2C.h>
 
 //SDA, SCL, ADDR
 SoftwareI2C SI2C(8, 9, 0xD0);
@@ -31,7 +31,7 @@ void setup() {
 	SI2C.listDevices();
 	
 	//Write a single byte to the bus
-	SI2C.writeCommand(0x50);
+	SI2C.writeByte(0x50);
 	
 	//Write an array to the bus from register 00
 	SI2C.writeArray(0x00, demoArray, 4);
